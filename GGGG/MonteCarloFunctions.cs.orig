@@ -1,0 +1,158 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using GGGG.Algorithms;
+using GGGG.Twister;
+
+namespace GGGG
+{
+    public class MonteCarloFunctions
+    {
+        public static MoveGenerator generator = new MoveGenerator();
+
+        public static Board GetRandomBoardAtEnd(Board board, BoardSquares player, bool lastNull = false)
+        {
+            var moves = generator.GetMoveList(board, player).ToList();
+
+            moves.Shuffle();
+
+            Board child = null;
+
+            foreach (var move in moves)
+            {
+                Board test = board.PlayMove(move.Pos, move.Color);
+                if (Board.MoveIsValid(board, test, player))
+                {
+                    child = test;
+                    break;
+                }
+            }
+
+            if (child == null && lastNull)
+            {
+                return board;
+            }
+
+            if (child == null)
+                return GetRandomBoardAtEnd(board, player.GetEnemy(), true); //play a null
+            else
+                return GetRandomBoardAtEnd(child, player.GetEnemy());
+
+        }
+
+        public static bool SkipEdgesHeuristic(Tuple<int, int> lastMove, Board board)
+        {
+            if (lastMove.Item1 == 1 || lastMove.Item2 == 1 || lastMove.Item1 == board.Width - 2 || lastMove.Item2 == board.Height - 2)
+                return true;
+
+            return false;
+        }
+    }
+
+
+    public class FastMonteCarloFunctions
+    {
+        public static FastMoveGenerator generator = new FastMoveGenerator();
+
+        public static unsafe FastBoard GetRandomBoardAtEnd(FastBoard board, BoardSquares player, bool lastNull = false)
+        {
+            var moves = generator.GetMoveList(board, player);
+
+            FastBoard child = null;
+
+            foreach (var move in DoMoveOrdering(moves,board,player))
+            {
+                FastBoard test = board.PlayMove(move.Pos, move.Color);
+                if (FastBoard.MoveIsValid(board, test, player))
+                {
+                    child = test;
+                    break;
+                }
+            }
+
+            if (child == null && lastNull)
+            {
+                return board;
+            }
+
+            if (child == null)
+                return GetRandomBoardAtEnd(board, player.GetEnemy(),true);
+            else
+                return GetRandomBoardAtEnd(child, player.GetEnemy());
+        }
+
+        public static unsafe IEnumerable<GoMove> DoMoveOrdering(IEnumerable<GoMove> moves, FastBoard parent, BoardSquares player)
+        {
+            var sortedList = new List<Tuple<double, GoMove>>();
+            fixed (BoardSquares* cellPointer = parent._boardVertices)
+            {
+                foreach (var move in moves)
+                {
+                    var cell = cellPointer + move.Pos;
+
+                    //Decrease probability of play into its own eye hole
+                    if (parent.TrueForAllSurrounding(x => x == player || x == BoardSquares.Edge, cell))
+                    {
+                        sortedList.Add(Tuple.Create(MyRandom.Random.NextDouble() * 0.2, move));
+                        continue;
+                    }
+
+                    //Decreased probability of play into squares with only 1 liberty
+                    int libertyCount = parent.CountTrueForSurroundings(x => x == BoardSquares.Empty || x == player, cell);
+                    if (libertyCount == 1)
+                    {
+                        sortedList.Add(Tuple.Create(MyRandom.Random.NextDouble() * 0.8, move));
+                        continue;
+                    }
+
+                    //Boosted probability of play into squares next to last move
+
+                    //Tinsy bias to playing moves close by the last move
+                    if (parent.LastMove.Pos != 0)
+                    {
+                        var distance = parent.LastMoveXY.DistanceFrom(parent.PosToXY(move.Pos));
+                        if (distance <= 3)
+                        {
+                            sortedList.Add(Tuple.Create(MyRandom.Random.NextDouble() * 1.5, move));
+                            continue;
+                        }
+
+                        //pattern match
+                        //if(PatternLibrary.MatchesAnyPattern(parent.PosToXY(move.Pos),parent))
+                        //{
+                        //    sortedList.Add(Tuple.Create(5.0, move));
+                        //    continue;
+                        //}
+
+                    }
+
+                    //Bias play near existing stones
+                    if (parent.TrueForAnySurrounding(x => x == BoardSquares.White || x == BoardSquares.Black, cell))
+                    {
+                        sortedList.Add(Tuple.Create(MyRandom.Random.NextDouble() * 1.1, move));
+                        continue;
+                    }
+
+                    sortedList.Add(Tuple.Create(MyRandom.Random.NextDouble() * 1.0, move));
+                }
+            }
+
+<<<<<<< local
+            var result =  sortedList.OrderByDescending(x => x.Item1).Select(x => x.Item2);
+            return result;
+=======
+            return sortedList.OrderByDescending(x => x.Item1).Select(x => x.Item2);
+
+>>>>>>> other
+        }
+
+        public static bool SkipEdgesHeuristic(Tuple<int, int> lastMove, Board board)
+        {
+            if (lastMove.Item1 == 1 || lastMove.Item2 == 1 || lastMove.Item1 == board.Width - 2 || lastMove.Item2 == board.Height - 2)
+                return true;
+
+            return false;
+        }
+    }
+}

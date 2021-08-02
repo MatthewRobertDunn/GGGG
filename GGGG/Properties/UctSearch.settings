@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GGGG.Properties" GeneratedClassName="UctSearch">
+  <Profiles />
+  <Settings>
+    <Setting Name="ResignWinrate" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">0.1</Value>
+    </Setting>
+    <Setting Name="PassEarlyWinrate" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">0.9</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

@@ -1,0 +1,198 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using System;
+using GGGG.Twister;
+
+namespace GGGG
+{
+    public static class Extentions
+    {
+        public static void AddRangeUnique<T>(this List<T> source, IEnumerable<T> dest)
+        {
+            foreach (var item in dest)
+            {
+                if (!source.Contains(item))
+                    source.Add(item);
+            }
+        }
+
+        public static void AddUnique<T>(this List<T> source, T item)
+        {
+            if (!source.Contains(item))
+            {
+                source.Add(item);
+            }
+        }
+
+        public static GoString[] DeepClone(this GoString[] toClone)
+        {
+            var newStrings = new GoString[toClone.Length];
+
+            for (int i = 0; i < toClone.Length; i++)
+            {
+                var item = toClone[i];
+                if (item != null)
+                    newStrings[i] = toClone[i].Clone();
+            }
+
+            return newStrings;
+        }
+
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = MyRandom.Random.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+        public static BoardSquares GetEnemy(this BoardSquares player)
+        {
+            BoardSquares enemy = BoardSquares.White;
+            if (player == BoardSquares.White)
+                enemy = BoardSquares.Black;
+            else
+                enemy = BoardSquares.White;
+            return enemy;
+        }
+
+        public static GoColor ToGoColor(this BoardSquares square)
+        {
+            if (square == BoardSquares.White)
+                return GoColor.White;
+            else
+                return GoColor.Black;
+        }
+
+    }
+
+    public class GoString
+    {
+        public BoardSquares Player;
+        //private List<int> liberties = new List<int>();
+
+        private int[] libertyArray = new int[0];
+        private int[] stonesArray = new int[0];
+
+        public IEnumerable<int> Liberties
+        {
+            get { return libertyArray; }
+        }
+        
+        //private List<int> stones = new List<int>();
+
+        public IEnumerable<int> Stones
+        {
+            get { return stonesArray; }
+        }
+
+        ~GoString()
+        {
+           // if (Q.Count < 10000000)
+           // {
+                Q.Push(this);
+            //}
+        }
+
+        public static GoString GetNew()
+        {
+            GoString result = null;
+
+            if (Q.TryPop(out result))
+            {
+                result.stonesArray = new int[0];
+                result.libertyArray = new int[0];
+                return result;
+            }
+            else
+                return new GoString();
+        }
+
+        public void AddLiberties(IEnumerable<int> liberties)
+        {
+            //this.liberties.AddRangeUnique(liberties);
+
+            
+            var newItems = liberties.Where(x => !libertyArray.Contains(x)).ToArray();
+            var newArray = new int[newItems.Length + libertyArray.Length];
+            libertyArray.CopyTo(newArray, 0);
+            newItems.CopyTo(newArray, libertyArray.Length);
+
+            libertyArray = newArray;
+
+        }
+
+        public void AddStones(IEnumerable<int> stones)
+        {
+            //this.stones.AddRangeUnique(stones);
+
+            var newItems = stones.Where(x => !stonesArray.Contains(x)).ToArray();
+            var newArray = new int[newItems.Length + stonesArray.Length];
+            stonesArray.CopyTo(newArray, 0);
+            newItems.CopyTo(newArray, stonesArray.Length);
+
+            stonesArray = newArray;
+        }
+
+        public void AddStone(int stone)
+        {
+            AddStones(new int[] { stone });
+        }
+
+        public void RemoveAllLiberies(Predicate<int> x)
+        {
+            libertyArray = libertyArray.Where(k => !x(k)).ToArray();
+        }
+
+        public void RemoveLiberty(int x)
+        {
+            RemoveAllLiberies(k=> x==k );
+        }
+
+        public void AddLiberty(int x)
+        {
+            AddLiberties(new int[] { x });
+        }
+
+
+        public static GoString MergeStrings(List<GoString> goStrings)
+        {
+            var first = goStrings.First();
+
+            for (int i = 1; i < goStrings.Count; i++)
+            {
+                var target = goStrings[i];
+                first.AddStones(target.Stones);
+                first.AddLiberties(target.Liberties);
+            }
+
+            first.RemoveAllLiberies(x => first.Stones.Contains(x));
+
+            return first;
+        }
+
+        public GoString Clone()
+        {
+            GoString newString = GetNew();
+
+            newString.Player = this.Player;
+
+            //newString.Stones = new List<int>(this.Stones);
+            //newString.Liberties = new List<int>(this.Liberties);
+
+            newString.AddStones(this.Stones);
+            newString.AddLiberties(this.Liberties);
+
+            return newString;
+        }
+
+        public static System.Collections.Concurrent.ConcurrentStack<GoString> Q = new System.Collections.Concurrent.ConcurrentStack<GoString>();
+
+    }
+}

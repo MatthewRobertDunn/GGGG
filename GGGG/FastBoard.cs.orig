@@ -1,0 +1,569 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using GGGG.Algorithms;
+
+namespace GGGG
+{
+    public class FastBoard
+    {
+        private int _width;
+        private int _height;
+        public int CapturedWhiteStones;
+        public int CapturedBlackStones;
+        public GoMove LastMove;
+        public BoardSquares[] _boardVertices;
+        public List<Int64> BoardHistory = new List<Int64>();
+        public ZobristHash BoardHash = new ZobristHash();
+
+        private FastBoard()
+        {
+
+        }
+
+        public FastBoard(int width, int height)
+        {
+
+            width = width + 2;
+            height = height + 2;
+
+            _width = width;
+            _height = height;
+            _boardVertices = new BoardSquares[(width) * (height)];
+            SetupBoard();
+            BoardHistory.Add(BoardHash.HashValue);
+        }
+
+
+        public int Height
+        {
+            get { return _height; }
+        }
+
+        public int Width
+        {
+            get { return _width; }
+        }
+
+        public BoardSquares[] BoardVertices
+        {
+            get { return _boardVertices; }
+        }
+
+
+        public void SetupBoard()
+        {
+            for (int x = 0; x < _width; x++)
+                for (int y = 0; y < _height; y++)
+                {
+                    //Edges
+                    if (x == 0 || x == _width - 1 || y == 0 || y == _height - 1)
+                        BoardVertices[XYToPos(x, y)] = BoardSquares.Edge;
+                    else
+                    {
+                        BoardVertices[XYToPos(x, y)] = BoardSquares.Empty;
+                    }
+                }
+        }
+
+
+        public FastBoard PlayMove(int x, int y, BoardSquares move)
+        {
+            return PlayMove(XYToPos(x, y), move);
+        }
+
+        public FastBoard PlayMove(int pos, BoardSquares player)
+        {
+            FastBoard newBoard = this.Clone();
+            newBoard.PlayMoveInternal(pos, player);
+            return newBoard;
+        }
+
+        private void PlayMoveInternal(int pos, BoardSquares player)
+        {
+            if (pos == 0)
+            {
+                BoardHash.Delta(player, pos);
+                BoardHistory.Add(BoardHash.HashValue);
+                LastMove = new GoMove() { Color = player, Pos = pos };
+                return;
+            }
+            BoardVertices[pos] = player;
+            BoardHash.Delta(player, pos);
+            MarkAndSweep(player);
+            LastMove = new GoMove() { Color = player, Pos = pos };
+            BoardHistory.Add(BoardHash.HashValue);
+        }
+
+        public unsafe bool DoOnlyEyesRemain(BoardSquares* cellPointer)
+        {
+            for (int x = 1; x < Width - 1; x++)
+                for (int y = 1; y < Height - 1; y++)
+                {
+                    int i = XYToPos(x, y);
+                    var currentcellPointer = cellPointer + i;
+                    var cell = *currentcellPointer;
+
+                    if (cell == BoardSquares.Empty)
+                    {
+                        if (
+                            !this.TrueForAllSurrounding(k => k == BoardSquares.Edge || k == BoardSquares.White || k == BoardSquares.Black,
+                                                        currentcellPointer))
+                            return false;
+                    }
+                }
+            return true;
+        }
+
+        public static unsafe bool MoveIsValid(FastBoard oldBoard, FastBoard newBoard, BoardSquares player)
+        {
+            if(newBoard.LastMove.Pos == 0)
+                return true;
+            //Black suicide
+            if (player == BoardSquares.Black)
+            {
+                if (newBoard.CapturedBlackStones > oldBoard.CapturedBlackStones)
+                    return false;
+
+                //Black play into eye
+            }
+
+            //white suicide
+            if (player == BoardSquares.White)
+            {
+                if (newBoard.CapturedWhiteStones > oldBoard.CapturedWhiteStones)
+                    return false;
+            }
+
+            //Positional superko
+            if (oldBoard.BoardHistory.Contains(newBoard.BoardHash.HashValue))
+                return false;
+
+            //only enable don't fill in eye check if only eyes remain
+            fixed (BoardSquares* cellPointer = oldBoard._boardVertices)
+<<<<<<< local
+                if (oldBoard.TrueForAllSurrounding(x => x == player || x==BoardSquares.Edge, cellPointer + newBoard.LastMove.Pos))
+                    if (oldBoard.DoOnlyEyesRemain(cellPointer))
+                    {
+                        //Don't do it unless it's a capture
+                        var oldWhite = oldBoard.CapturedWhiteStones;
+                        var oldBlack = oldBoard.CapturedBlackStones;
+=======
+                if (oldBoard.DoOnlyEyesRemain(cellPointer))
+                if(oldBoard.TrueForAllSurrounding(x=>x == player || x==BoardSquares.Edge, cellPointer+newBoard.LastMove.Pos))
+                {
+                    //Don't do it unless it's a capture
+                    var oldWhite = oldBoard.CapturedWhiteStones;
+                    var oldBlack = oldBoard.CapturedBlackStones;
+>>>>>>> other
+
+                        var testBoard = oldBoard.PlayMove(newBoard.LastMove.Pos, player.GetEnemy());
+
+                        if (player == BoardSquares.White)
+                            if (oldWhite != testBoard.CapturedWhiteStones)
+                                return true;
+
+                        if (player == BoardSquares.Black)
+                            if (oldBlack != testBoard.CapturedBlackStones)
+                                return true;
+
+
+                        return false;
+
+                    }
+
+
+            return true;
+        }
+
+
+        private unsafe void MarkAndSweep(BoardSquares player)
+        {
+            //Try and capture any enemy stones first
+            fixed (BoardSquares* cellPointer = _boardVertices)
+            {
+
+                MarkStones(player.GetEnemy(), cellPointer);
+                int enemyCaptured = SweepDeadStones(player.GetEnemy(), cellPointer);
+
+                //If an enemy was captured, can't possibly be suicide
+
+                if (enemyCaptured == 0)
+                {
+                    //Check for suicide
+                    MarkStones(player, cellPointer);
+                    SweepDeadStones(player, cellPointer);
+                }
+
+                //Depressure all stones
+                DepressureAllStones(cellPointer);
+            }
+        }
+
+        private unsafe void DepressureAllStones(BoardSquares* cellPointer)
+        {
+
+            for (int x = 1; x < Width - 1; x++)
+                for (int y = 1; y < Height - 1; y++)
+                {
+                    int i = XYToPos(x, y);
+                    var currentcellPointer = cellPointer + i;
+                    var cell = *currentcellPointer;
+
+                    if (cell == BoardSquares.PressuredWhite || cell == BoardSquares.PressuredBlack)
+                    {
+                        *currentcellPointer = cell.GetUnpressuredVersion();
+                    }
+                }
+        }
+
+        private unsafe int SweepDeadStones(BoardSquares player, BoardSquares* cellPointer)
+        {
+            int numCaptured = 0;
+
+            for (int x = 1; x < Width - 1; x++)
+                for (int y = 1; y < Height - 1; y++)
+                {
+                    int i = XYToPos(x, y);
+                    var currentcellPointer = cellPointer + i;
+                    var cell = *currentcellPointer;
+                    if (cell == player)
+                    {
+                        //remove this stone
+                        *currentcellPointer = BoardSquares.Empty;
+                        numCaptured++;
+                        BoardHash.Delta(cell, i);
+                    }
+                }
+
+            if (player == BoardSquares.White)
+                CapturedWhiteStones += numCaptured;
+            else
+                CapturedBlackStones += numCaptured;
+
+            return numCaptured;
+        }
+
+
+        public unsafe double CalcScore(double komi = 0)
+        {
+            double eval = 0;
+            double whiteStoneCount = 0.0;
+            double blackStoneCount = 0.0;
+            fixed (BoardSquares* cellPointer = _boardVertices)
+            {
+                for (int x = 1; x < Width - 1; x++)
+                    for (int y = 1; y < Height - 1; y++)
+                    {
+                        int i = XYToPos(x, y);
+                        var currentcellPointer = cellPointer + i;
+                        var cell = *currentcellPointer;
+
+                        if (cell == BoardSquares.White)
+                            whiteStoneCount++;
+                        if (cell == BoardSquares.Black)
+                            blackStoneCount++;
+
+                        if (cell == BoardSquares.Empty)
+                        {
+                            if (TrueForAllSurrounding(c => c == BoardSquares.White, currentcellPointer))
+                                whiteStoneCount++;
+
+                            if (TrueForAllSurrounding(c => c == BoardSquares.Black, currentcellPointer))
+                                blackStoneCount++;
+                        }
+                    }
+            }
+            return (whiteStoneCount + komi) - blackStoneCount;
+        }
+
+        /// <summary>
+        /// Performs a single mark and prune iteration for a player
+        /// </summary>
+        /// <param name="player">Player to mark and sweep for</param>
+        /// <returns>true if this was the last iteration for this player</returns>
+        private unsafe void MarkStones(BoardSquares player, BoardSquares* cellPointer)
+        {
+
+            bool isFinished;
+            do
+            {
+                isFinished = true;
+                for (int x = 1; x < Width - 1; x++)
+                    for (int y = 1; y < Height - 1; y++)
+                    {
+                        int i = XYToPos(x, y);
+                        var currentcellPointer = cellPointer + i;
+                        var cell = *currentcellPointer;
+
+                        //if the cell doesn't match the current player, it's not under pressure
+                        if (cell != player)
+                            continue;
+
+                        bool shouldPressure = false;
+
+                        //Right
+                        BoardSquares testCell = *(currentcellPointer + 1);
+                        if (testCell == BoardSquares.Empty || testCell == player.GetPressuredVersion())
+                        {
+                            shouldPressure = true;
+                            goto pressure;
+                        }
+
+                        //Left
+                        testCell = *(currentcellPointer - 1);
+                        if (testCell == BoardSquares.Empty || testCell == player.GetPressuredVersion())
+                        {
+                            shouldPressure = true;
+                            goto pressure;
+                        }
+
+                        //Up
+                        testCell = *(currentcellPointer - _height);
+                        if (testCell == BoardSquares.Empty || testCell == player.GetPressuredVersion())
+                        {
+                            shouldPressure = true;
+                            goto pressure;
+                        }
+
+                        //Down
+                        testCell = *(currentcellPointer + _height);
+                        if (testCell == BoardSquares.Empty || testCell == player.GetPressuredVersion())
+                        {
+                            shouldPressure = true;
+                        }
+                    pressure:
+                        if (shouldPressure)
+                        {
+                            *currentcellPointer = player.GetPressuredVersion();
+                            isFinished = false;
+                        }
+                    }
+            } while (isFinished == false);
+        }
+
+
+        public FastBoard Clone()
+        {
+            FastBoard newBoard = new FastBoard();
+            newBoard.CapturedBlackStones = this.CapturedBlackStones;
+            newBoard.CapturedWhiteStones = this.CapturedWhiteStones;
+            newBoard._height = this._height;
+            newBoard._width = this._width;
+            newBoard._boardVertices = (BoardSquares[])BoardVertices.Clone();
+            newBoard.BoardHash = this.BoardHash.Clone();
+            newBoard.BoardHistory = new List<long>(this.BoardHistory);
+            return newBoard;
+        }
+
+
+        public BoardSquares[] GetSquareContentsAround(int pos)
+        {
+            var result = new BoardSquares[4];
+            result[0] = BoardVertices[Above(pos)];
+            result[1] = BoardVertices[Below(pos)];
+            result[2] = BoardVertices[Left(pos)];
+            result[3] = BoardVertices[Right(pos)];
+            return result;
+        }
+
+
+        public int Above(int pos)
+        {
+            return pos - _height;
+        }
+
+        public int Below(int pos)
+        {
+            return pos + _height;
+        }
+
+        public int Left(int pos)
+        {
+            return pos - 1;
+        }
+
+        public int Right(int pos)
+        {
+            return pos + 1;
+        }
+
+        public Tuple<int, int> PosToXY(int pos)
+        {
+            int x = pos % _height;
+            int y = (int)Math.Floor((double)pos / _height);
+            return Tuple.Create(x, y);
+        }
+
+
+        public int XYToPos(int x, int y)
+        {
+            return y * _height + x;
+        }
+
+        public Tuple<int, int> LastMoveXY
+        {
+            get { return PosToXY(this.LastMove.Pos); }
+        }
+
+
+        public unsafe int CountTrueForSurroundings(Func<BoardSquares, bool> func, BoardSquares* currentcellPointer)
+        {
+            int count = 0;
+            //Right
+            BoardSquares testCell = *(currentcellPointer + 1);
+            if (func(testCell))
+                count++;
+
+            //Left
+            testCell = *(currentcellPointer - 1);
+            if (func(testCell))
+                count++;
+
+            //Up
+            testCell = *(currentcellPointer - _height);
+            if (func(testCell))
+                count++;
+
+            //Down
+            testCell = *(currentcellPointer + _height);
+            if (func(testCell))
+                count++;
+
+            return count;
+        }
+
+        public unsafe bool TrueForAnySurrounding(Func<BoardSquares, bool> func, BoardSquares* currentcellPointer)
+        {
+            //Right
+            BoardSquares testCell = *(currentcellPointer + 1);
+            if (func(testCell))
+                return true;
+
+            //Left
+            testCell = *(currentcellPointer - 1);
+            if (func(testCell))
+                return true;
+
+            //Up
+            testCell = *(currentcellPointer - _height);
+            if (func(testCell))
+                return true;
+
+            //Down
+            testCell = *(currentcellPointer + _height);
+            if (func(testCell))
+                return true;
+
+            return true;
+        }
+
+        public unsafe Int64 HashSurrounding(BoardSquares* cell)
+        {
+            BoardSquares[] surrounds = new BoardSquares[8];
+
+            //NOTE, odering is imporant here!
+
+            //top left
+            surrounds[0] = *(cell - _height - 1);
+
+            //Up
+            surrounds[1] = *(cell - _height);
+            
+            //top right
+            surrounds[2] = *(cell - _height + 1);
+            
+            //Left
+            surrounds[3] = *(cell - 1);
+
+            //Right
+            surrounds[4] = *(cell + 1);
+
+            //bottom left
+            surrounds[5] = *(cell + _height - 1);
+            
+            //Down
+            surrounds[6] = *(cell + _height);
+            
+            //bottom right
+            surrounds[7] = *(cell + _height + 1);
+
+
+            ZobristHash hash = new ZobristHash();
+            for (int index = 0; index < surrounds.Length; index++)
+            {
+                var boardSquare = surrounds[index];
+                
+                if(boardSquare == BoardSquares.Empty )
+                    continue;
+
+                hash.Delta(boardSquare,index);
+            }
+
+            return hash.HashValue;
+        }
+
+        public unsafe bool TrueForAllSurrounding(Func<BoardSquares, bool> func, BoardSquares* currentcellPointer)
+        {
+            //Right
+            BoardSquares testCell = *(currentcellPointer + 1);
+            if (!func(testCell))
+                return false;
+
+            //Left
+            testCell = *(currentcellPointer - 1);
+            if (!func(testCell))
+                return false;
+
+            //Up
+            testCell = *(currentcellPointer - _height);
+            if (!func(testCell))
+                return false;
+
+            //Down
+            testCell = *(currentcellPointer + _height);
+            if (!func(testCell))
+                return false;
+
+            return true;
+        }
+
+
+        public BoardSquares GetItemAt(Tuple<int,int> pos)
+        {
+            return (BoardSquares)_boardVertices[XYToPos(pos.Item1,pos.Item2)];
+        }
+
+
+        public override string ToString()
+        {
+            StringBuilder s = new StringBuilder();
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    var stone = _boardVertices[XYToPos(x, y)];
+                    switch (stone)
+                    {
+                        case BoardSquares.Edge:
+                            s.Append("x");
+                            break;
+                        case BoardSquares.White:
+                            s.Append("w");
+                            break;
+                        case BoardSquares.Black:
+                            s.Append("b");
+                            break;
+                        case BoardSquares.Empty:
+                            s.Append("+");
+                            break;
+                    }
+                }
+                s.Append(Environment.NewLine);
+            }
+
+            return s.ToString();
+        }
+    }
+}

@@ -1,0 +1,21 @@
+(;GM[1]FF[4]SZ[9]AP[SmartGo:2.8.3.0]
+GN[empty9x9B]
+PW[SmartGo]
+PB[MattyGoDebug]
+DT[2013-03-17]
+KM[6.5]
+GC[ComputeOppTime = 0
+]BL[450.0]WL[450.0];B[fd]BL[434.1];W[df]V[0.0]WL[449.7]
+;B[dc]BL[418.5];W[gf]V[0.0]WL[449.5];B[ff]BL[403.2];W[gd]V[-7.7]WL[441.7]
+;B[ge]BL[387.6];W[fg]V[3.6]WL[420.6];B[gg]BL[372.3];W[he]V[4.7]WL[409.7]
+;B[fe]BL[356.7];W[hf]V[0.1]WL[397.2];B[gc]BL[341.3];W[fh]V[-0.4]WL[379.3]
+;B[bd]BL[326.0];W[hd]V[-4.1]WL[366.5];B[hc]BL[310.4];W[ic]V[1.1]WL[349.9]
+;B[ig]BL[295.1];W[hb]V[-9.8]WL[327.8];B[hg]BL[279.7];W[fc]V[-23.6]WL[313.8]
+;B[gb]BL[264.4];W[fb]V[-26.9]WL[292.4];B[ga]BL[249.0];W[ed]V[-35.2]WL[280.5]
+;B[ib]BL[233.7];W[ca]V[-40.2]WL[261.5];B[ha]BL[218.3];W[ec]V[-45.7]WL[247.5]
+;B[ce]BL[202.7];W[cc]V[-30.6]WL[227.7];B[de]BL[187.4];W[ee]V[-23.6]WL[209.3]
+;B[ef]BL[172.1];W[cg]V[-58.9]WL[198.6];B[bf]BL[156.7];W[bg]V[-50.4]WL[187.4]
+;B[cf]BL[141.4];W[eg]V[-55.5]WL[179.1];B[dg]BL[126.0];W[dh]V[-64.8]WL[171.8]
+;B[dd]BL[110.7];W[db]V[-55.7]WL[156.8];B[bc]BL[93.4];W[bb]V[-61.1]WL[154.4]
+)
+

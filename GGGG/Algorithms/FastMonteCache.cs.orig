@@ -1,0 +1,125 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using GGGG.Interface;
+
+namespace GGGG.Algorithms
+{
+    public class FastMonteCache
+    {
+        LruCache<Int64, MonteCacheEntry> internalCache;
+
+        public FastMonteCache()
+        {
+            internalCache = new LruCache<Int64, MonteCacheEntry>(new TimeSpan(0, 5, 0), 50000000, 10000);
+        }
+
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void AddEstimate(IFastBoard board, double estimate, double confidence, int currentDepth)
+        {
+            int max = currentDepth + 9;
+            max = Math.Min(max, board.BoardHistory.Count);
+
+            //Int64 hash = board.BoardHistory[board.BoardHistory.Count - 1];
+            //AddOrUpdateEstimate(hash, board.LastMove.Color, estimate, confidence);
+
+
+            for (int i = max - 1; i >= currentDepth; i--)
+            {
+                Int64 hash = board.BoardHistory[i];
+                AddOrUpdateEstimate(hash, board.LastMove.Color, estimate, confidence);
+            }
+
+            //AMAF heuristic todo:
+            //for (int i = currentDepth; i < max - 1; i++)
+            //{
+            //    var move = board.MoveHistory[i];
+            //    if (move.CaptureOccured)
+            //        break;
+            //    if (move.Color == topLevelMoves.Player)
+            //    {
+            //        if (topLevelMoves.TopLevelMoves.ContainsKey(move.Pos))
+            //            AddOrUpdateEstimate(topLevelMoves.TopLevelMoves[move.Pos], board.LastMove.Color, estimate, confidence);
+            //    }
+            //}
+        }
+
+
+       [MethodImpl(MethodImplOptions.Synchronized)]
+        public void CacheBoard(IEnumerable<long> boardHistory, double eval, int boardSize, int boardCount)
+        {
+            foreach (var hash in boardHistory)
+            {
+                AddOrUpdateEntry(hash, eval, 1.0 / boardCount);
+            }
+        }
+
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void CacheBoard(IFastBoard board, double eval, int currentDepth, AMAFTopLevel topLevelMoves)
+        {
+            int max = currentDepth + 9;
+            max = Math.Min(max, board.BoardHistory.Count);
+
+            for (int i = max - 1; i >= currentDepth; i--)
+            {
+                Int64 hash = board.BoardHistory[i];
+                AddOrUpdateEntry(hash, eval);
+            }
+
+            ////AMAF heuristic
+            //for (int i = currentDepth; i < max - 1; i++)
+            //{
+            //    var move = board.MoveHistory[i];
+            //    if (move.CaptureOccured)
+            //        break;
+            //    if (move.Color == topLevelMoves.Player)
+            //    {
+            //        if (topLevelMoves.TopLevelMoves.ContainsKey(move.Pos))
+            //            AddOrUpdateEntry(topLevelMoves.TopLevelMoves[move.Pos], eval);
+            //    }
+            //}
+        }
+        public MonteCacheEntry GetCachedBoardEvals(Int64 hash)
+        {
+            return internalCache.GetObject(hash);
+        }
+
+
+        public void AddOrUpdateEstimate(Int64 hash, BoardSquares player, double estimate, double confidence)
+        {
+            var item = internalCache.GetObject(hash);
+            if (player == BoardSquares.White)
+            {
+                item.WhiteWon += (estimate * confidence);   //0.7 * 100 white won 70 games
+                item.BlackWon += ((1.0 - estimate) * confidence);  //0.3 * 100, black won 30 games
+            }
+
+            if (player == BoardSquares.Black)
+            {
+                item.BlackWon += (estimate * confidence);   //0.7 * 100 black won 70 games
+                item.WhiteWon += ((1.0 - estimate) * confidence);  //0.3 * 100, black won 30 games
+            }
+
+            internalCache.AddObject(hash, item);
+        }
+
+
+        public void AddOrUpdateEntry(Int64 hash, double eval, double worth = 1.0)
+        {
+            MonteCacheEntry item = internalCache.GetObject(hash);
+
+            if (eval > 0)
+                item.WhiteWon += (worth + (eval / 10000000000.0));
+            else if (eval < 0)
+                item.BlackWon += (worth + ((-eval) / 10000000000.0));
+
+
+            internalCache.AddObject(hash, item);
+        }
+
+    }
+}

@@ -3,3 +3,27 @@
 ################################################################################
 
 /.vs/GGGG/v16
+/GGGG/bin
+/GGGG/obj/x86
+/GGGG.Accelerators/Release
+/GGGG.ExperimentalBoard/bin
+/GGGG.ExperimentalBoard/obj
+/GGGG.Interface/bin/Release
+/GGGG.Interface/obj
+/GGGG.NeuralEstimator/bin/Release
+/GGGG.NeuralEstimator/obj
+/GGGGGoText/bin
+/GGGGGoText/obj/x86
+/packages
+/PatternCreator/bin
+/PatternCreator/obj/x86
+/TestResults
+/UnitTests/bin
+/UnitTests/obj
+*.vsp
+*.suo
+*.psess
+*.user
+*.sdf
+*.vsmdi
+/.vs/GGGG/config

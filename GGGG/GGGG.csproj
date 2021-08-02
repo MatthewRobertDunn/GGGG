@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{78F63948-FDB6-4A26-B57A-0681F96CC8A4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GGGG</RootNamespace>
+    <AssemblyName>GGGG</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\Lib\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="MoreLinq">
+      <HintPath>..\Lib\MoreLinq.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Algorithms\BoardCache.cs" />
+    <Compile Include="Algorithms\CapturesCache.cs" />
+    <Compile Include="Algorithms\FastBoardCache.cs" />
+    <Compile Include="Algorithms\FastItemsCache.cs" />
+    <Compile Include="Algorithms\FastMonteCache.cs" />
+    <Compile Include="Algorithms\IListExtentions.cs" />
+    <Compile Include="AMAFTopLevel.cs" />
+    <Compile Include="Collections\HashUtilities.cs" />
+    <Compile Include="Collections\IConcurrentDictionary.cs" />
+    <Compile Include="Collections\HashTrie\HashTrie.cs" />
+    <Compile Include="Collections\HashTrie\TrieListNode.cs" />
+    <Compile Include="Collections\HashTrie\TrieNodeUnsafe.cs" />
+    <Compile Include="Collections\IDictionaryEx.cs" />
+    <Compile Include="Collections\LurchTablecs.cs" />
+    <Compile Include="IAdvancedBoard.cs" />
+    <Compile Include="IAdvancedBoardExtensions.cs" />
+    <Compile Include="IFastBoardExtensions.cs" />
+    <Compile Include="MarkAndSweep\MarkAndSweepExtention.cs" />
+    <Compile Include="MarkAndSweep\MarkAndSweepSimulation.cs" />
+    <Compile Include="SearchOptions.cs" />
+    <Compile Include="Properties\UctSearch.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>UctSearch.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Twister\FastRandom.cs" />
+    <Compile Include="Algorithms\LRUCache.cs" />
+    <Compile Include="Algorithms\MonteCache.cs" />
+    <Compile Include="Algorithms\NewPatternLibrary.cs" />
+    <None Include="Algorithms\PatternLibrary.cs" />
+    <Compile Include="Algorithms\TerminatedList.cs" />
+    <Compile Include="AlphaBetaSearch.cs" />
+    <Compile Include="Board.cs" />
+    <Compile Include="BoardEvaluator.cs" />
+    <Compile Include="BoardFactory.cs" />
+    <Compile Include="Extentions.cs" />
+    <Compile Include="FastBoard.cs" />
+    <Compile Include="FastStack.cs" />
+    <Compile Include="GnuTextProtocol\GtpReaderWriter.cs" />
+    <Compile Include="GoGui\GoGuiReader.cs" />
+    <Compile Include="GoString.cs" />
+    <Compile Include="IFastBoard1.cs" />
+    <Compile Include="IGoEngine.cs" />
+    <Compile Include="Influence.cs" />
+    <Compile Include="ListMemoryPool.cs" />
+    <Compile Include="MemoryManagement\FastObjectPool.cs" />
+    <Compile Include="MemoryManagement\FixedWidthUnsafeMemoryManager.cs" />
+    <Compile Include="MemoryManagement\GoStringFactory.cs" />
+    <Compile Include="MemoryManagement\ObjectPool.cs" />
+    <Compile Include="MemoryManagement\ObjectPoolFactory.cs" />
+    <Compile Include="MiniMax.cs" />
+    <Compile Include="MonteCarloFunctions.cs" />
+    <Compile Include="MonteCarloSearch.cs" />
+    <Compile Include="MoveGenerator.cs" />
+    <Compile Include="NewBoardAgain\BoardBase.cs" />
+    <Compile Include="NewBoardAgain\GoString2.cs" />
+    <Compile Include="NewBoardAgain\GoString2Pool.cs" />
+    <Compile Include="NewBoardAgain\StringBasedBoard.cs" />
+    <Compile Include="Numerics\Int128.cs" />
+    <Compile Include="PinDropParams.cs" />
+    <Compile Include="PinDropResult.cs" />
+    <Compile Include="Player.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SGF\Color.cs" />
+    <Compile Include="SGF\CoordinateSystem.cs" />
+    <Compile Include="SGF\GameRecord.cs" />
+    <Compile Include="SGF\GameRecords.cs" />
+    <Compile Include="SGF\SGFCollection.cs" />
+    <Compile Include="SGF\SGFGameSamples.cs" />
+    <Compile Include="SGF\SGFNode.cs" />
+    <Compile Include="SGF\SGFProperty.cs" />
+    <Compile Include="SGF\SGFSequence.cs" />
+    <Compile Include="Threading\InfinitePartitioner.cs" />
+    <Compile Include="Twister\MyRandom.cs" />
+    <Compile Include="TranspositionTable.cs" />
+    <Compile Include="UCTSearch.cs" />
+    <Compile Include="Utility\DirectoryFiles.cs" />
+    <Compile Include="Utility\ErrorManagement.cs" />
+    <Compile Include="Utility\MemFile.cs" />
+    <None Include="app.config" />
+    <None Include="Properties\UctSearch.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>UctSearch.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Shitty.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GGGG.Interface\GGGG.Interface.csproj">
+      <Project>{8C72BF25-883A-4563-953F-6A7D136F5CC8}</Project>
+      <Name>GGGG.Interface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GGGG.NeuralEstimator\GGGG.NeuralEstimator.csproj">
+      <Project>{b2d0a591-fa9c-43cf-94d6-8296dec60503}</Project>
+      <Name>GGGG.NeuralEstimator</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
